@@ -1,5 +1,7 @@
-// export const LOGIN = "LOGIN";
-// export const LOGOUT = "LOGOUT"
+export const LOGIN = "LOGIN";
+export const LOGOUT = "LOGOUT"
+
+
 const initialState = {
         firstName : '',
         lastName : '',
@@ -8,9 +10,9 @@ const initialState = {
         loggedIn : false
 }   
 
-const changeUserDetails = (state = initialState , action) => {
+const UserDetails = (state = initialState , action) => {
    switch (action.type) {
-    case "LOGIN" :
+    case LOGIN :
         return {
         ...state , 
         firstName: action.payload.firstName,
@@ -19,11 +21,11 @@ const changeUserDetails = (state = initialState , action) => {
         password: action.payload.password,
         loggedIn: true
     };
-    case "LOGOUT":
+    case LOGOUT:
     return initialState;
     default:
      return state
    }
 
 }
-export default changeUserDetails
+export default UserDetails

@@ -5,8 +5,8 @@ import Navbar from "./Navbar";
 // import { loginUser } from "../../reactredux/actions";
 const NavbarContainer = () => {
   const dispatch = useDispatch();
-  const loggedIn = useSelector((state) => state.changeUserDetails.loggedIn);
-  const firstName = useSelector((state) => state.changeUserDetails.firstName)
+  const loggedIn = useSelector((state) => state.UserDetails.loggedIn);
+  const firstName = useSelector((state) => state.UserDetails.firstName)
     console.log(loggedIn);
 
 

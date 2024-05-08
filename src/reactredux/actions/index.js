@@ -1,44 +1,53 @@
-import userData from "../../testData.json";
-// import axios from "axios";
-// import { LOGIN_PENDING , LOGIN_ERROR } from "../reducers/user";
-// import { LOGIN , LOGOUT } from "../reducers/userDetail";
+import baseApi from "../../apibase-endpoint/apiBase";
+import { userEnd } from "../../apibase-endpoint/apiEndpoint";
+
+import logInMessage, { LOGIN_PENDING , LOGIN_ERROR , LOGIN_SUCCESS } from "../reducers/user";
+import { LOGIN , LOGOUT } from "../reducers/userDetail";
 
 export const logIn = (data) => {
-  // console.log(data);
   return {
-    type: "LOGIN",
-    payload : data
+    type: LOGIN,
+    payload: data
   };
 };
 
 export const logOut = () => {
   return {
-    type: "LOGOUT",
+    type: LOGOUT,
     payload: {}
   };
 };
 
 export const logInError = (error) => {
   return {
-    type: "LOGIN_ERROR",
+    type: LOGIN_ERROR,
     payload: error,
   };
 };
 export const logInPending = () => {
   return {
-    type: "LOGIN_PENDING",
+    type: LOGIN_PENDING,
   };
 };
-export const loginUser = () => {
+export const logInSuccess = (message) => {
+  return {
+    type: LOGIN_SUCCESS,
+    payload: message
+  }
+}
+export const loginUser = (data) => {
   
-  return (dispatch) => {
+  return async(dispatch) => {
     try {
-      // axios.get(`https://jsonplaceholder.typicode.com/todos/1`).then(res => {dispatch(logInSuccess(res))})
-      dispatch(logInPending());
-      dispatch(logIn(userData.user));
-
-    } catch (error) {
-      console.log(error);
+      const res = await baseApi({apiDetails:userEnd.login, body:data});
+      const resData = res;
+      console.log(resData.data.user);
+      if(res.status === 200){
+        dispatch(logInPending());
+        dispatch(logIn(resData.data.user));
+        dispatch(logInSuccess(resData.data.message))
+      }
+    } catch (error) { 
       dispatch(logInError(error));
     }
   };

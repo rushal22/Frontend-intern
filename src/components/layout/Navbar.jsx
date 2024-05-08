@@ -29,15 +29,19 @@ const Navbar = ({ loggedIn, onLogout , firstName}) => {
   };
 
   const handleClose = () => {
-    setAnchorEl();
+    setAnchorEl(null);
   };  
+  const handleProfile = () => {
+    navigate('/profile')
+  }
   return (
     <AppBar position="fixed" sx={{ width: "100%", top: 0 }}>
       <Toolbar sx={{justifyContent: "space-between"}}>
         <Grid container justifyContent="space-between" alignItems="center">
           <Grid item>
           {loggedIn ? (
-            <Button>
+            <Button variant="text" component ={Link} to = '/' color="inherit">
+              Home
             </Button>
           ) : (
             <Button variant="contained" onClick={handleLogIn}>
@@ -53,12 +57,14 @@ const Navbar = ({ loggedIn, onLogout , firstName}) => {
           </Grid>
         
         <Grid item>
-            <Link>TrackOrder</Link>
+        <Button variant="text" component ={Link} to = '/trackorder' color="inherit">
+              Track Order
+            </Button>
           </Grid>
          {loggedIn ? ( <Grid item>
             <Avatar sx={avatarStyle} alt={firstName} src="avatar.png" onClick = {handleAvatarClick} /> 
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-              <MenuItem onClick={handleClose}>Profile</MenuItem>
+              <MenuItem onClick={handleProfile}>Profile</MenuItem>
               <MenuItem onClick={handleClose}>Settings</MenuItem>
               <MenuItem onClick={handleLogOut}>Logout</MenuItem>
               </Menu>

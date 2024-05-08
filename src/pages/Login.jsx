@@ -8,52 +8,33 @@ import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import { useDispatch , useSelector  } from "react-redux";
-import { loginUser , logInPending } from "../reactredux/actions";
+import { useDispatch} from "react-redux";
+import { loginUser} from "../reactredux/actions";
 import { useState } from "react";
-import userJsonData from "../testData.json";
-
-import { useNavigate } from "react-router-dom"
-
-
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const navigate = useNavigate()  
-  const dispatch = useDispatch()
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // const { processing } = useSelector((state) => ({
-  //   processing: state.logInMessage.processing
-  // }));
-    
-
-const processing = useSelector((state) => state.logInMessage.processing);
-
-// Memoize the selector
-// const processedData = useMemo(() => ({
-//   processing
-// }), [processing]);
- 
-
-  const handleLogin = () => {
-    let userData = {
-      email : email,
-      password : password
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      alert("Please enter both email and password");
+      return; 
     }
-    if(email === userJsonData.user.email && password === userJsonData.user.password){
-      console.log(userData);
-      dispatch(loginUser())
-      dispatch(logInPending())
+    try {
+      dispatch(loginUser({ email: email, password: password }));
       navigate('/')
-    }else{
-      console.log("error occurred");
+    } catch (error) {
+      console.log("An error occured during login :", error);
     }
-  }
-  
+  };
+
   return (
     <>
-
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <Box
@@ -66,10 +47,9 @@ const processing = useSelector((state) => state.logInMessage.processing);
         >
           <Avatar sx={{ m: 1, bgcolor: "blue" }}></Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Sign in 
           </Typography>
-          {processing && <p >Loading</p>}
-          <Box  component="form" noValidate sx={{ mt: 1 }}>
+          <form onSubmit={handleLogin}>
             <TextField
               margin="normal"
               required
@@ -96,7 +76,6 @@ const processing = useSelector((state) => state.logInMessage.processing);
             />
             <Button
               type="submit"
-              onClick={handleLogin}
               variant="contained"
               sx={{ mt: 1, mb: 2 }}
             >
@@ -115,7 +94,7 @@ const processing = useSelector((state) => state.logInMessage.processing);
                 </Link>
               </Grid>
             </Grid>
-          </Box>
+            </form>
         </Box>
       </Container>
     </>

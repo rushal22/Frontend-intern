@@ -4,6 +4,8 @@ import NavbarContainer from './components/layout/NavbarContainer';
 import Login from './pages/Login';
 import Registration from './pages/Registration';
 import Home from './pages/Home';
+import Profile from './pages/Profile';
+
 function App() {
   return (
 <>
@@ -13,6 +15,7 @@ function App() {
 <Route path='/'>
 <Route path='/login' element = {<Login />} />
 <Route path='/signup' element = {<Registration />}/>
+<Route path='/profile' element = {<Profile />} />
 <Route path='/' element = {<Home />} />
 </Route>
 </Routes>
