@@ -9,27 +9,40 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { useDispatch} from "react-redux";
-import { loginUser} from "../reactredux/actions";
+import { loginUser , logInError, logInPending, logIn, logInSuccess} from "../reactredux/actions";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {toast} from 'react-hot-toast'
+import baseApi from "../apibase-endpoint/apiBase";
+import { userEnd } from "../apibase-endpoint/apiEndpoint";
+
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [values , setValues] = useState({email: '' , password : ''})
 
-  const handleLogin = (e) => {
+
+  const handleLogin = async(e) => {
     e.preventDefault();
-    if (!email || !password) {
-      alert("Please enter both email and password");
-      return; 
-    }
+
     try {
-      dispatch(loginUser({ email: email, password: password }));
-      navigate('/')
+      dispatch(logInPending())
+      const res = await baseApi({apiDetails:userEnd.login, body:values})
+      const resData = res.data
+      if(res.status === 200){
+        dispatch(logIn(resData.user_data))
+        dispatch(logInSuccess(resData.message))
+        toast.success(resData.message)
+        navigate('/')
+      }
     } catch (error) {
-      console.log("An error occured during login :", error);
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        dispatch(logInError(error))
+        toast.error("An error occurred while logging in.");
+      }
     }
   };
 
@@ -59,8 +72,8 @@ const Login = () => {
               name="email"
               autoComplete="email"
               autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={values.email}
+              onChange={(e) => setValues({ ...values, email: e.target.value })}
             />
             <TextField
               margin="normal"
@@ -71,8 +84,8 @@ const Login = () => {
               type="password"
               id="password"
               autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={values.password}
+              onChange={(e) => setValues({ ...values, password: e.target.value })}
             />
             <Button
               type="submit"
@@ -84,7 +97,7 @@ const Login = () => {
             {/* <button onClick={handleLogin}>LOGIN</button> */}
             <Grid container>
               <Grid item xs>
-                <Link href="#" variant="body2">
+                <Link href="/forgotpw" variant="body2">
                   Forgot password?
                 </Link>
               </Grid>

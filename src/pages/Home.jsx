@@ -5,7 +5,9 @@ import Card from "../components/cards/Card";
 const Home = () => {
   return (
     <>
+    <div>
     <Card />
+    </div>
     </>
   );
 };

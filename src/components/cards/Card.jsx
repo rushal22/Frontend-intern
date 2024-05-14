@@ -10,15 +10,15 @@ import Container from "@mui/material/Container";
 
 const cardComponent = () => {
     return (
-        <div style={{backgroundColor: "grey" , paddingTop : "10%"}}>
+      <>
       {/* Hero unit */}
-      <Container sx={{ py: 8 }} maxWidth="md">
+      <Container sx={{ py: 10 }} maxWidth="sm">
         {/* End hero unit */}
-        <Grid container spacing={4}>
+        <Grid container spacing={-1}>
           
             <Card
-              sx={{ height: "100%", display: "flex", flexDirection: "column" }}
-            >
+              sx={{ display: "flex", flexDirection: "column" }}
+              >
               <CardMedia
                 component="img"
                 sx={{
@@ -27,29 +27,19 @@ const cardComponent = () => {
                 }}
                 image= {`https://plus.unsplash.com/premium_photo-1675896084254-dcb626387e1e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cHJvZHVjdHxlbnwwfHwwfHx8MA%3D%3D`}
                 alt="random"
-              />
-              {/* <img src={image1} />  */}
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography
-                  gutterBottom
-                  variant="h5"
-                  component="h2"
-                ></Typography>
-                <Typography></Typography>
+                />
+              <CardContent sx={{ flexGrow: 2 }}>
+                Product Name
               </CardContent>
               <CardActions>
-                <Typography textAlign="left" variant="h6">
-                  Rs.2000
-                </Typography>
-                <Typography textAlign="right" variant="h6">
-                  {" "}
-                  Product{" "}
+                <Typography textAlign="left" variant="h8">
+                  Add to Cart
                 </Typography>
               </CardActions>
             </Card>
           </Grid>
       </Container>
-    </div>
+    </>
     );
 };
 

@@ -18,7 +18,6 @@ const logInMessage = (state = initialState, action) => {
       return {
         ...state,
         processing: false,
-        error: {},
         successMessage: action.payload,
       };
     default:

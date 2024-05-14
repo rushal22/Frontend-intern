@@ -1,25 +1,27 @@
-import React , {useState} from "react";
+import React , {useState , useEffect} from "react";
 import { AppBar, Grid, Toolbar , Button , Avatar ,Menu , MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 
-const Navbar = ({ loggedIn, onLogout , firstName}) => {
+const Navbar = ({ loggedIn, onLogout , firstName , onToggleDarkMode}) => {
   
   const avatarStyle = {
     cursor: 'pointer'
   }
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null)
-
+  const [darkMode , setDarkMode] = useState(false)
 
   const handleLogOut = () => {
     onLogout();
+    setAnchorEl(null)
     navigate("/login");
   };
 
   const handleLogIn = () => {
     navigate("/login");
+    handleClose()
   };
   const handleNext = () => {
     navigate('/signup')
@@ -27,12 +29,16 @@ const Navbar = ({ loggedIn, onLogout , firstName}) => {
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-
   const handleClose = () => {
     setAnchorEl(null);
   };  
   const handleProfile = () => {
     navigate('/profile')
+    handleClose()
+  }
+  const handleToggleDarkMode = () => {
+    setDarkMode(!darkMode)
+    onToggleDarkMode()
   }
   return (
     <AppBar position="fixed" sx={{ width: "100%", top: 0 }}>
@@ -61,16 +67,18 @@ const Navbar = ({ loggedIn, onLogout , firstName}) => {
               Track Order
             </Button>
           </Grid>
-         {loggedIn ? ( <Grid item>
+         {loggedIn ? ( 
+         <Grid item>
             <Avatar sx={avatarStyle} alt={firstName} src="avatar.png" onClick = {handleAvatarClick} /> 
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
               <MenuItem onClick={handleProfile}>Profile</MenuItem>
-              <MenuItem onClick={handleClose}>Settings</MenuItem>
+              <MenuItem onClick={handleToggleDarkMode}>{darkMode ? "Light Mode" : "Dark Mode"}</MenuItem>
               <MenuItem onClick={handleLogOut}>Logout</MenuItem>
-              </Menu>
+              </Menu> 
+             
           </Grid>
          ) : (
-          <Avatar /> 
+            <Avatar />
          )}
           </Grid>
       </Toolbar>
