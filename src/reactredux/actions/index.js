@@ -1,6 +1,3 @@
-import baseApi from "../../apibase-endpoint/apiBase";
-import { userEnd } from "../../apibase-endpoint/apiEndpoint";
-
 import { LOGIN_PENDING , LOGIN_ERROR , LOGIN_SUCCESS } from "../reducers/user";
 import { LOGIN , LOGOUT } from "../reducers/userDetail";
 
@@ -35,6 +32,15 @@ export const logInSuccess = (message) => {
     payload: message
   }
 }
+export const setSearchResults = (results) => ({
+  type: 'SET_SEARCH_RESULTS',
+  payload: results,
+});
+
+export const clearSearchResults = () => ({
+  type: 'CLEAR_SEARCH_RESULTS',
+});
+
 
 export const logOutUser = () => {
   return (dispatch) => {

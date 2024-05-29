@@ -5,16 +5,16 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import store from './store';
 import { Provider } from 'react-redux';
-
+import { CartProvider } from './components/shared/features/CartContext';
 
 store.subscribe(() => console.log(store.getState()));
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <Provider store = {store} >
+<Provider store = {store} >
+ <CartProvider>
     <App />
+</CartProvider>
     </Provider>
-  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

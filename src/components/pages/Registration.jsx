@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
@@ -9,10 +8,10 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { useNavigate } from "react-router-dom";
-import baseApi from "../apibase-endpoint/apiBase";
-import { userEnd } from "../apibase-endpoint/apiEndpoint";
+import baseApi from "../../apibase-endpoint/apiBase";
+import { userEnd } from "../../apibase-endpoint/apiEndpoint";
 import toast from "react-hot-toast";
-
+import CustomButton from "../shared/Buttons/Button";
 const Registration = () => {
   const navigate = useNavigate();
   const [values, setValues] = useState({
@@ -33,7 +32,6 @@ const Registration = () => {
     try {
       const res = await baseApi({ apiDetails: userEnd.signup, body: values });
       const resData = res.data;
-      // console.log(res);
       if (res.status === 200) {
         navigate("/login");
         toast.success(resData.message);
@@ -46,7 +44,7 @@ const Registration = () => {
       ) {
         toast.error(error.response.data.message);
       } else {
-        toast.error("An error occurred while logging in.");
+        toast.error("An error occurred while Registering in.");
       }
     }
   };
@@ -134,10 +132,10 @@ const Registration = () => {
                   onChange={(e) => setValues({ ...values , confirmPassword: e.target.value})}
                 />
               </Grid>
+            <Grid item xs= {12}>
+            <CustomButton type="register"  />
             </Grid>
-            <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2 }}>
-              Register
-            </Button>
+            </Grid>
             <Grid container justifyContent="flex-end">
               <Grid item>
                 <Link href="/login" variant="body2">

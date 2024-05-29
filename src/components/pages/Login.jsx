@@ -8,42 +8,47 @@ import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import { useDispatch} from "react-redux";
-import { loginUser , logInError, logInPending, logIn, logInSuccess} from "../reactredux/actions";
+import { useDispatch, useSelector} from "react-redux";
+import { logInError, logInPending, logIn, logInSuccess} from "../../reactredux/actions";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {toast} from 'react-hot-toast'
-import baseApi from "../apibase-endpoint/apiBase";
-import { userEnd } from "../apibase-endpoint/apiEndpoint";
-
+import baseApi from "../../apibase-endpoint/apiBase";
+import { userEnd } from "../../apibase-endpoint/apiEndpoint";
+import CustomButton from "../shared/Buttons/Button";
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [values , setValues] = useState({email: '' , password : ''})
-
-
+  
   const handleLogin = async(e) => {
     e.preventDefault();
+    dispatch(logInPending())
 
     try {
-      dispatch(logInPending())
       const res = await baseApi({apiDetails:userEnd.login, body:values})
       const resData = res.data
+
       if(res.status === 200){
+        localStorage.setItem("Bearer" , resData.access_token)
         dispatch(logIn(resData.user_data))
         dispatch(logInSuccess(resData.message))
         toast.success(resData.message)
         navigate('/')
+      }else{
+        toast.error(resData.message)
       }
     } catch (error) {
+      dispatch(logInError(error));
+      console.log(error);
       if (error.response && error.response.data && error.response.data.message) {
         toast.error(error.response.data.message);
       } else {
-        dispatch(logInError(error))
         toast.error("An error occurred while logging in.");
       }
     }
+    
   };
 
   return (
@@ -87,13 +92,10 @@ const Login = () => {
               value={values.password}
               onChange={(e) => setValues({ ...values, password: e.target.value })}
             />
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{ mt: 1, mb: 2 }}
-            >
-              Login
-            </Button>
+            <CustomButton
+              type="login"
+           />
+          
             {/* <button onClick={handleLogin}>LOGIN</button> */}
             <Grid container>
               <Grid item xs>
