@@ -1,11 +1,8 @@
 // ThemeMode.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-const DarkMode = () => {
+const useDarkMode = () => {
   const savedDarkMode = localStorage.getItem("darkMode") === "true";
-  if (savedDarkMode) {
-    document.documentElement.classList.add("dark-mode");
-  }
   const [darkMode, setDarkMode] = useState(savedDarkMode);
 
   useEffect(() => {
@@ -14,6 +11,11 @@ const DarkMode = () => {
     } else {
       document.documentElement.classList.remove("dark-mode");
     }
+
+    // Return a cleanup function if needed, here no cleanup is necessary
+    return () => {
+      // Cleanup code if required
+    };
   }, [darkMode]);
 
   const handleToggleDarkMode = () => {
@@ -30,4 +32,4 @@ const DarkMode = () => {
   return [darkMode, handleToggleDarkMode];
 };
 
-export default DarkMode;
+export default useDarkMode;

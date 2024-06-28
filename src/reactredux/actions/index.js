@@ -1,5 +1,6 @@
 import { LOGIN_PENDING , LOGIN_ERROR , LOGIN_SUCCESS } from "../reducers/user";
 import { LOGIN , LOGOUT } from "../reducers/userDetail";
+import { SET_DELIVERY_DETAILS } from "../reducers/deliveryDetails";
 
 export const logIn = (data) => {
   return {
@@ -32,15 +33,10 @@ export const logInSuccess = (message) => {
     payload: message
   }
 }
-export const setSearchResults = (results) => ({
-  type: 'SET_SEARCH_RESULTS',
-  payload: results,
+export const DeliveryDetails = (details) => ({
+  type: SET_DELIVERY_DETAILS,
+  payload: details,
 });
-
-export const clearSearchResults = () => ({
-  type: 'CLEAR_SEARCH_RESULTS',
-});
-
 
 export const logOutUser = () => {
   return (dispatch) => {

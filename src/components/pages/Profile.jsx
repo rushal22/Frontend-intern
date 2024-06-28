@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
   Avatar,
-  Button,
+  Box,
   Container,
-  CssBaseline,
-  Grid,
   Typography,
   TextField,
+  IconButton,
+  CssBaseline,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useSelector } from "react-redux";
@@ -16,9 +16,18 @@ import baseApi from "../../apibase-endpoint/apiBase";
 import { userEnd } from "../../apibase-endpoint/apiEndpoint";
 import Loadingpage from "../shared/features/Loadingpage";
 import CustomButton from "../shared/Buttons/Button";
+import { config } from "../../helper/config";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import TrackOrder from "./TrackOrder";
 
 const ProfileContainer = styled(Container)({
-  marginTop: "2rem",
+  marginTop: "100px",
+  padding: "3rem",
+  backgroundColor: "#f0f0f0",
+  borderRadius: "8px",
+  boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
 });
 
 const Profile = () => {
@@ -27,30 +36,60 @@ const Profile = () => {
   const [editMode, setEditMode] = useState(false);
   const [profilePic, setProfilePic] = useState("");
   const [resData, setResData] = useState({});
-  const [loading, setLoading] = useState(true); 
-  const [values , setValues] = useState({firstName:'' , lastName: ''})
+  const [loading, setLoading] = useState(true);
+  const [values, setValues] = useState({
+    firstName: "",
+    lastName: "",
+    city: "",
+    address: "",
+    contact: "",
+    profile_image: null,
+  });
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("darkMode") === "true"
+  );
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await baseApi({
-          apiDetails: userEnd.profile
-        });
-        setResData(response.data);
-        setValues(response.data)
-        setLoading(false)
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-        setLoading(false)
-      } 
-    };
-
+    document.documentElement.classList.toggle("dark-mode", darkMode);
     fetchData();
-  }, []); // Empty dependency array ensures this effect runs only once on mount
+  }, [darkMode]);
+
+  const fetchData = async () => {
+    try {
+      const response = await baseApi({
+        apiDetails: userEnd.profile,
+      });
+      console.log("profile data", response.data);
+      setResData(response.data);
+      setValues({
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        city: response.data.user_detail?.city || "",
+        address: response.data.user_detail?.address || "",
+        contact: response.data.user_detail?.contact || "",
+        profile_image: null,
+      });
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching profile data:", error);
+      setLoading(false);
+    }
+  };
 
   const handleProfilePicChange = (e) => {
     const file = e.target.files[0];
-    setProfilePic(URL.createObjectURL(file));
+    if (file) {
+      setValues({
+        ...values,
+        profile_image: file,
+      });
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePic(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -61,17 +100,36 @@ const Profile = () => {
     }));
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    try{
-      const res = await baseApi({apiDetails: userEnd.editprofile , body: values})
-      if(res.status === 200){
-        toast.success(res.data.message)
-        setResData(values)
-        setEditMode(false)
+    try {
+      const formData = new FormData();
+      formData.append("firstName", values.firstName);
+      formData.append("lastName", values.lastName);
+      formData.append("city", values.city);
+      formData.append("address", values.address);
+      formData.append("contact", values.contact);
+      if (values.profile_image instanceof File) {
+        formData.append("profile_image", values.profile_image);
       }
-      // console.log("Updated Profile Data:", resData);
-    }catch(error){
+
+      const res = await baseApi({
+        apiDetails: userEnd.editprofile,
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log(res);
+      if (res.status === 200) {
+        toast.success(res.data.message);
+        setResData(res.data);
+        setEditMode(false);
+        window.location.reload();
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error) {
       console.error("Error updating profile:", error);
     }
   };
@@ -85,79 +143,169 @@ const Profile = () => {
   };
 
   return (
-    <ProfileContainer component="main" maxWidth="xs" style={{ height: "100vh"}}>
+    <ProfileContainer
+    
+      sx={{
+        bgcolor: darkMode ? "#333" : "white",
+        color: darkMode ? "#ccc" : "black",
+      }}
+      maxWidth="xs"
+    >
       <CssBaseline />
-      <div>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
         <Avatar
           alt="Profile Picture"
-          src={profilePic}
-          sx={{ width: 100, height: 100, margin: "auto", marginTop: 8.01 }}
+          src={
+            profilePic ||
+            (resData.user_detail &&
+              `${config.baseUrl}${resData.user_detail.profile_image}`)
+          }
+          sx={{ width: 120, height: 120, marginBottom: "1rem" }}
         />
-        {/* Show loading spinner until data is fetched */}
+        <Box
+          sx={{
+            ml: 8,
+            display: "flex",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <Typography component="h1" variant="h5">
+            {`${resData.firstName} ${resData.lastName}`}
+          </Typography>
+          <CustomButton type="edit" onClick={handleEditProfile} />
+        </Box>
         {loading && <Loadingpage />}
+
         {!loading && (
           <>
             {editMode ? (
-              <>
-                <Typography component="h1" variant="h5" align="center">
-                  Edit Your Profile
-                </Typography>
-                <form onSubmit={handleSubmit}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfilePicChange}
-                    style={{ margin: "auto", marginTop: 10, display: "block" }}
-                  />
+              <form
+                onSubmit={handleSubmit}
+                encType="multipart/form-data"
+                style={{ width: "100%", marginTop: "1rem" }}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePicChange}
+                  style={{ marginBottom: "1rem" }}
+                />
+                <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <TextField
                     variant="filled"
                     margin="normal"
-                    required
                     fullWidth
                     id="firstName"
                     label="First Name"
                     name="firstName"
                     value={values.firstName}
                     onChange={handleInputChange}
-                    className="profile-textfield"
-                    InputProps={{ style: { borderColor: "red" } }}
+                    autoFocus
+                    InputProps={{ disableUnderline: true, style: { color: darkMode ? "#ccc" : "black" } }}
+                    InputLabelProps={{ style: { color: darkMode ? "#ccc" : "inherit" } }}
                   />
                   <TextField
                     variant="filled"
                     margin="normal"
-                    required
                     fullWidth
                     id="lastName"
                     label="Last Name"
                     name="lastName"
                     value={values.lastName}
                     onChange={handleInputChange}
-                    className="profile-textfield"
-                    InputProps={{ style: { borderColor: "red" } }}
+                    InputProps={{ disableUnderline: true, style: { color: darkMode ? "#ccc" : "black" } }}
+                    InputLabelProps={{ style: { color: darkMode ? "#ccc" : "inherit" } }}
                   />
-                  <CustomButton type="save"  />
-                </form>
-              </>
+                  <TextField
+                    variant="filled"
+                    margin="normal"
+                    fullWidth
+                    id="city"
+                    label="City"
+                    name="city"
+                    value={values.city}
+                    onChange={handleInputChange}
+                    InputProps={{ disableUnderline: true, style: { color: darkMode ? "#ccc" : "black" } }}
+                    InputLabelProps={{ style: { color: darkMode ? "#ccc" : "inherit" } }}
+                  />
+                  <TextField
+                    variant="filled"
+                    margin="normal"
+                    fullWidth
+                    id="address"
+                    label="Address"
+                    name="address"
+                    value={values.address}
+                    onChange={handleInputChange}
+                    InputProps={{ disableUnderline: true, style: { color: darkMode ? "#ccc" : "black" } }}
+                    InputLabelProps={{ style: { color: darkMode ? "#ccc" : "inherit" } }}
+                  />
+                  <TextField
+                    variant="filled"
+                    margin="normal"
+                    fullWidth
+                    id="contact"
+                    label="Contact"
+                    name="contact"
+                    value={values.contact}
+                    onChange={handleInputChange}
+                    InputProps={{ disableUnderline: true, style: { color: darkMode ? "#ccc" : "black" } }}
+                    InputLabelProps={{ style: { color: darkMode ? "#ccc" : "inherit" } }}
+                  />
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+                  <CustomButton type="save" />
+                </Box>
+              </form>
             ) : (
-              <>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} align="center" margin={"auto"} marginTop={4}>
-                    <Typography variant="h5">
-                      {resData.firstName + " " + resData.lastName}
-                    </Typography>
-                  </Grid>
-                </Grid>
-                <Grid item xs={12} align="center">
-                  <CustomButton
-                    type='edit'
-                    onClick={handleEditProfile}
-                  />
-                </Grid>
-              </>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  marginTop: '1px',
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  align="center"
+                  color={darkMode ? "#ccc" : "textSecondary"}
+                  gutterBottom
+                >
+                  <IconButton disabled>
+                    <LocationOnIcon sx={{ color: darkMode ? "white" : "textSecondary" }} />
+                  </IconButton>
+                  {resData.user_detail?.address}, {resData.user_detail?.city}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  align="center"
+                  color={darkMode ? "#ccc" : "textSecondary"}
+                  gutterBottom
+                >
+                  <IconButton disabled>
+                    <EmailIcon sx={{ color: darkMode ? "white" : "textSecondary" }} />
+                  </IconButton>
+                  {resData.email}
+                </Typography>
+                <Typography
+                sx={{mr: 10}}
+                  variant="body2"
+                  align="center"
+                  color={darkMode ? "#ccc" : "textSecondary"}
+                  gutterBottom
+                >
+                  <IconButton disabled>
+                    <PhoneIcon sx={{ color: darkMode ? "white" : "textSecondary" }} />
+                  </IconButton>
+                  {resData.user_detail?.contact}
+                </Typography>
+              </Box>
             )}
           </>
         )}
-      </div>
+      </Box>
     </ProfileContainer>
   );
 };

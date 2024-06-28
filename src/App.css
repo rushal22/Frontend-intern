@@ -1,32 +1,4 @@
 
-.dark-mode{
-  background-color: #282c34; /* Dark background color for the entire app */
-  color: white; /* Light text color */
-}
-.dark-mode header {
-  background-color: #333;
-  color: white;
-}
-.dark-mode .profile-textfield {
-  background-color: rgb(180, 170, 170); /* Adjust as needed */
-  color: white; /* Adjust as needed */
-}
-footer {
-  background-color: #333;
-  color: white;
-  padding: 20px;
-  /* Push the footer to the bottom of the page */
-}
-.content {
-  min-height: calc(100vh - 100px);
-  /* height: auto; Adjust for the height of the footer */
-  /* margin-top: 20px; */
-}
-
-.main-content{
-  margin-top: 60px;
-}
-
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

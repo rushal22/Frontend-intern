@@ -7,9 +7,9 @@ import HomeIcon from '@mui/icons-material/Home';
 import SaveIcon from '@mui/icons-material/Save';
 import { Link } from 'react-router-dom';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-
-const CustomButton = ({ type, onClick }) => {
+const CustomButton = ({ type, onClick, disabled }) => {
   const renderButton = () => {
     switch (type) {
       case 'login':
@@ -41,13 +41,13 @@ const CustomButton = ({ type, onClick }) => {
       case 'edit':
         return (
           <Button 
-            variant="contained"
+          size='small'
             color='secondary'
             sx={{ mt: 3, mb: 2 }}
             startIcon={<EditIcon />} 
             onClick={onClick}
           >
-            Edit Profile
+           
           </Button>
         );
         case 'save':
@@ -66,13 +66,13 @@ const CustomButton = ({ type, onClick }) => {
         case 'home':
         return(
           <Button
+          sx={{marginLeft: "100px" , fontSize: 18, marginTop:"-66px", fontWeight: 'bold'}}
           variant='text'
           component = {Link}
           to= '/'
           color='inherit'
-          startIcon={<HomeIcon />}
           >
-            Genius
+            Shopify
           </Button>
         )
         case 'search':
@@ -92,8 +92,14 @@ const CustomButton = ({ type, onClick }) => {
               <Button
               size='small'
               onClick={onClick}
-              sx={{bgcolor: 'grey'}}
+              sx={{ boxShadow: "0px 0px 20px rgba(0,0,0,0.5)" ,bgcolor: 'grey', fontSize: 15,
+                "&:disabled" : {
+                  cursor:"not-allowed",
+                  bgcolor:"grey"
+                },
+              }}
               variant='contained'
+              disabled= {disabled}
               >
                 +
               </Button>
@@ -103,12 +109,24 @@ const CustomButton = ({ type, onClick }) => {
                 <Button
                 size='small'
                 onClick={onClick}
-                sx={{bgcolor: 'grey'}}
+                sx={{ boxShadow: "0px 0px 20px rgba(0,0,0,0.5)", bgcolor: 'grey', fontSize: 15}}
                 variant='contained'
                 >
                   -
                 </Button>
               )
+              case 'delete' :
+                return (
+                  <Button
+                  size='large'
+                  sx={{color: "grey"}}
+                  onClick={onClick}
+                  startIcon= {<DeleteIcon />}
+                  variant='text'
+                  >
+                    
+                  </Button>
+                )
       default:
         return (
           <Button 

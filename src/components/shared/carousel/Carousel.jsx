@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Grid} from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
-
+import { config } from '../../../helper/config';
 const MyCarousel = ({ Productdata }) => {
   return (
     <>
@@ -12,8 +12,9 @@ const MyCarousel = ({ Productdata }) => {
               <Grid key={i} container justifyContent="center" alignItems="center">
                 <Grid item>
                   <Box position="relative" height={300} width={900}>
+                    {console.log(item)}
                     <img
-                      src={item.image}
+                      src={config.baseUrl + item.image}
                       alt={item.title}
                       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />

@@ -1,5 +1,3 @@
-// src/components/shared/layout/NavbarContainer.jsx
-
 import React, { useState, useEffect } from "react";
 import {
   AppBar,
@@ -10,54 +8,21 @@ import {
   Menu,
   MenuItem,
   Switch,
-  styled,
+  Typography,
+  Link
 } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import {Link as link , useNavigate } from "react-router-dom";
 import { Brightness4, Brightness7, AccountCircle } from "@mui/icons-material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import CustomButton from "../Buttons/Button";
 import Search from "../features/Search";
 import CartIcon from "../features/CartIcon";
+import "../../../assets/css/main.css";
+import { config } from "../../../helper/config";
+import baseApi from "../../../apibase-endpoint/apiBase";
+import { userEnd } from "../../../apibase-endpoint/apiEndpoint";
 
-
-
-const StyledMenu = styled(Menu)(({ theme }) => ({
-  "& .MuiPaper-root": {
-    backgroundColor:
-      localStorage.getItem("darkMode") === "true"
-        ? theme.palette.grey[900]
-        : theme.palette.background.default,
-    borderRadius: "10px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    minWidth: "200px",
-  },
-}));
-
-const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
-  "&:hover": {
-    backgroundColor:
-      localStorage.getItem("darkMode") === "true"
-        ? theme.palette.grey[900]
-        : theme.palette.background.default,
-  },
-  "& .MuiSvgIcon-root": {
-    fontSize: 20,
-    marginRight: theme.spacing(1.5),
-  },
-  "& .MuiTypography-root": {
-    fontWeight: 500,
-  },
-  backgroundColor:
-    localStorage.getItem("darkMode") === "true"
-      ? theme.palette.grey[900]
-      : theme.palette.background.default,
-  color:
-    localStorage.getItem("darkMode") === "true"
-      ? theme.palette.grey[300]
-      : theme.palette.text.primary,
-}));
-
-const Navbar = ({ loggedIn, onLogout, firstName, onToggleDarkMode }) => {
+const Navbar = ({ loggedIn, onLogout, onToggleDarkMode, token }) => {
   const avatarStyle = {
     cursor: "pointer",
   };
@@ -66,16 +31,33 @@ const Navbar = ({ loggedIn, onLogout, firstName, onToggleDarkMode }) => {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
   );
-
+  const [profilePic, setProfilePic] = useState("");
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark-mode", darkMode);
   }, [darkMode]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await baseApi({ apiDetails: userEnd.profile });
+        if (response.status === 200) {
+          setProfilePic(response.data.user_detail.profile_image);
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile picture:", error);
+      }
+    };
+
+    if (token && token !== "undefined" && token !== null) {
+      fetchData();
+    }
+  }, [token]);
+
   const handleLogOut = () => {
+    window.location.reload()
     onLogout();
     setAnchorEl(null);
-    navigate("/login");
   };
 
   const handleLogIn = () => {
@@ -83,12 +65,10 @@ const Navbar = ({ loggedIn, onLogout, firstName, onToggleDarkMode }) => {
     handleClose();
   };
 
-  const handleNext = () => {
-    navigate("/signup");
-  };
 
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
+    document.body.classList.add("overflow-auto");
   };
 
   const handleClose = () => {
@@ -105,41 +85,40 @@ const Navbar = ({ loggedIn, onLogout, firstName, onToggleDarkMode }) => {
     setDarkMode(newDarkMode);
     localStorage.setItem("darkMode", newDarkMode);
     onToggleDarkMode();
+    window.location.reload(); // Reload the window after toggling dark mode
   };
 
   return (
-    <AppBar position="fixed" sx={{ width: "100%", top: 0 }}>
+    <AppBar
+      position="fixed"
+      sx={{ bgcolor: "#182B3E", width: "100%", top: 0 }}
+      className="overflow-auto"
+    >
       <Toolbar sx={{ justifyContent: "space-between" }}>
         <Grid container justifyContent="space-between" alignItems="center">
           <Grid item>
-            {loggedIn ? (
-              <CustomButton type="home" />
-            ) : (
-              <>
-                <Grid
-                  container
-                  direction="row"
-                  justifyContent="flex-start"
-                  alignItems="center"
-                >
-                  <Grid item>
-                    <CustomButton type="login" onClick={handleLogIn} />
-                  </Grid>
-                  <Grid item>
-                    <CustomButton type="register" onClick={handleNext} />
-                  </Grid>
+           
+                <Grid item>
+                  <img
+                    src="/shopify.png"
+                    style={{
+                      height: "30px",
+                      marginTop: "20px",
+                      marginLeft: "70px",
+                    }}
+                  />
                 </Grid>
-              </>
-            )}
+                <CustomButton type="home" />
+
           </Grid>
           <Grid item>
             <Search />
           </Grid>
           <Grid item>
             <Button
-              sx={{ fontSize: 12 }}
+              sx={{ fontSize: 12, fontWeight: "bold" }}
               variant="text"
-              component={Link}
+              component={link}
               to="/trackorder"
               color="inherit"
             >
@@ -147,39 +126,79 @@ const Navbar = ({ loggedIn, onLogout, firstName, onToggleDarkMode }) => {
             </Button>
           </Grid>
           <Grid item>
-           <CartIcon /> 
+            <CartIcon />
           </Grid>
           {loggedIn ? (
             <Grid item>
               <Avatar
                 sx={avatarStyle}
-                alt={firstName}
-                src="avatar.png"
+                src={config.baseUrl + profilePic}
                 onClick={handleAvatarClick}
               />
-              <StyledMenu
+              <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
+                MenuListProps={{ sx: { paddingTop: 0, paddingBottom: 0 } }}
               >
-                <StyledMenuItem onClick={handleProfile}>
+                <MenuItem
+                  onClick={handleProfile}
+                  className={darkMode ? "dark-menu-item" : ""}
+                >
                   <AccountCircle />
                   Profile
-                </StyledMenuItem>
-                <StyledMenuItem>
+                </MenuItem>
+                <MenuItem className={darkMode ? "dark-menu-item" : ""}>
                   {darkMode ? <Brightness7 /> : <Brightness4 />}
-                  <Switch checked={darkMode} onChange={handleToggleDarkMode} />
+                  <Switch
+                    checked={darkMode}
+                    onChange={handleToggleDarkMode}
+                  />
                   {darkMode ? "Light Mode" : "Dark Mode"}
-                </StyledMenuItem>
-                <StyledMenuItem onClick={handleLogOut}>
+                </MenuItem>
+                <MenuItem
+                  onClick={handleLogOut}
+                  className={darkMode ? "dark-menu-item" : ""}
+                >
                   <LogoutIcon />
                   Logout
-                </StyledMenuItem>
-              </StyledMenu>
+                </MenuItem>
+              </Menu>
             </Grid>
-          ) : (
-           null
-          )}
+          ) : <Grid item>
+          <Button onClick={handleAvatarClick} sx={{ color: "white" }}>
+            Hello, sign in
+          </Button>
+          <Menu
+            sx={{mr: 20}}
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+            MenuListProps={{ sx: { width: '190px', paddingTop: 0, paddingBottom: 0 } }}
+          >
+              <Button
+                onClick={handleLogIn}
+                variant="contained"
+                sx={{ ml: 1, mt: 1, bgcolor: "#FFD814", color: "black" }}
+              >
+                Sign In
+              </Button>
+              <MenuItem>
+              <Typography sx={{ mr: 1 ,cursor: 'auto'}} variant="body2">
+                New customer?{" "}
+                </Typography>
+                <Link
+                  sx={{ml: -1}}
+                  href="/signup"
+                  variant="body2"
+                  underline="none"
+                >
+                  Start here
+                </Link>
+                </MenuItem>
+          </Menu>
+        </Grid>
+           }
         </Grid>
       </Toolbar>
     </AppBar>

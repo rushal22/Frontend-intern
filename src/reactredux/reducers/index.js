@@ -1,11 +1,12 @@
+import { combineReducers } from "redux";
 import UserDetails from "./userDetail";
 import logInMessage from "./user";
-import searchReducer from "./search";
+import deliveryDetails from "./deliveryDetails";
 
-import { combineReducers } from "redux";
 
 const rootReducer = combineReducers({
     logInMessage,
     UserDetails,
+    deliveryDetails
 })
 export default rootReducer;

@@ -7,7 +7,7 @@ const NavbarContainer = ({onToggleDarkMode}) => {
   const dispatch = useDispatch();
   const loggedIn = useSelector((state) => state.UserDetails.loggedIn);
   const firstName = useSelector((state) => state.UserDetails.firstName)
-
+  let token = localStorage.getItem("Bearer")
 
   const handleLogOut = () => {
     dispatch(logOutUser()); 
@@ -20,6 +20,7 @@ const NavbarContainer = ({onToggleDarkMode}) => {
       loggedIn={loggedIn}
       onLogout={handleLogOut}
       firstName={firstName}
+      token={token}  
     />
   );
 };

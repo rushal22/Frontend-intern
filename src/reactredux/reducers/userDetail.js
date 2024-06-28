@@ -8,7 +8,8 @@ const initialState = {
         email : '',
         password : '',
         loggedIn : false,
-        image : ''
+        role: "user",
+        user_detail: {}
 }   
 
 const UserDetails = (state = initialState , action) => {
@@ -21,7 +22,8 @@ const UserDetails = (state = initialState , action) => {
         email: action.payload.email,
         password: action.payload.password,
         loggedIn: true,
-        image: action.payload.image
+        role: action.payload.role,
+        user_detail: action.payload.user_detail
     };
     case LOGOUT:
     return initialState;
