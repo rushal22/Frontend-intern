@@ -20,12 +20,10 @@ const loadState = () => {
       }
 }
 
-// const persistedState = loadState()
 const store = legacy_createStore(rootReducer, loadState(),  enhancer);
 
 
 const updateReduxStore = () => {
-    // localStorage.setItem('ReduxStore' , JSON.stringify(store.getState()))
     try {
         const serializedState = JSON.stringify(store.getState());
         localStorage.setItem('ReduxStore', serializedState);
@@ -37,5 +35,4 @@ const updateReduxStore = () => {
 store.subscribe(() => {
     updateReduxStore(store)
 })
-// const store = legacy_createStore(rootReducer ,window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),  applyMiddleware(thunk))
 export default store

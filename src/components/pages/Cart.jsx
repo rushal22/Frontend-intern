@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Container,
@@ -18,26 +18,37 @@ import { config } from "../../helper/config";
 import CustomButton from "../shared/Buttons/Button";
 import { useNavigate } from "react-router-dom";
 import "../../assets/css/main.css";
+import debounce from "lodash/debounce";
+import { useSelector } from "react-redux";
 
 const Cart = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [earliestDeliveryDate, setEarliestDeliveryDate] = useState("");
   const [cartItems, setCartItems] = useState([]);
+  const [subtotal, setSubtotal] = useState(0);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
+  const [total, setTotal] = useState(0);
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
   );
+  const { user_detail } = useSelector((state) => state.UserDetails);
 
   useEffect(() => {
     const fetchCartData = async () => {
+      setLoading(true);
       const res = await baseApi({ apiDetails: cartEnd.viewCart });
       console.log(res);
       if (res.status === 200) {
+        setLoading(false);
         setCartItems(res.data.cart.products);
+        setSubtotal(res.data.subtotal);
         setDeliveryCharge(res.data.deliverycharge);
-        calculateTotalPrice(res.data.cart.products);
+        setTotal(res.data.total);
+      } else {
+        setLoading(false);
       }
     };
     fetchCartData();
@@ -55,42 +66,41 @@ const Cart = () => {
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#333" : "#fff";
     document.body.style.color = darkMode ? "#fff" : "#000";
+    console.log(user_detail);
   }, [darkMode]);
 
-  const calculateTotalPrice = (items) => {
-    const total = items.reduce((sum, item) => {
-      const itemPrice = item.discountpercentage
-        ? item.price * ((100 - item.discountpercentage) / 100)
-        : item.price;
-      return sum + itemPrice * item.pivot.quantity;
-    }, 0);
-    return total;
-  };
-
-  const updateCart = async (productId, quantity) => {
-    const response = await baseApi({
-      apiDetails: cartEnd.updateCart,
-      body: { product_id: productId, quantity: quantity },
-    });
-    if (response.status === 200) {
-      const updatedCart = await baseApi({ apiDetails: cartEnd.viewCart });
-      console.log(updatedCart);
-      if (updatedCart.status === 200) {
-        setCartItems(updatedCart.data.cart.products);
-        calculateTotalPrice(updatedCart.data.cart.products);
+  const debouncedUpdateCart = useCallback(
+    debounce(async (productId, quantity) => {
+      const response = await baseApi({
+        apiDetails: cartEnd.updateCart,
+        body: { product_id: productId, quantity: quantity },
+      });
+      if (response.status === 200) {
+        const updatedCart = await baseApi({ apiDetails: cartEnd.viewCart });
+        console.log(updatedCart);
+        if (updatedCart.status === 200) {
+          setCartItems(updatedCart.data.cart.products);
+          setSubtotal(updatedCart.data.subtotal);
+          setDeliveryCharge(updatedCart.data.deliverycharge);
+          setTotal(updatedCart.data.total);
+        } else {
+          toast.error(updatedCart.data.cart);
+        }
       } else {
-        toast.error(updatedCart.data.cart);
+        toast.error(response.errors);
       }
-    } else {
-      toast.error(response.errors);
-    }
-  };
+    }, 500),
+    []
+  );
 
   const handleAdd = (index) => {
     const newCartItems = [...cartItems];
     newCartItems[index].pivot.quantity += 1;
     setCartItems(newCartItems);
-    updateCart(newCartItems[index].id, newCartItems[index].pivot.quantity);
+    debouncedUpdateCart(
+      newCartItems[index].id,
+      newCartItems[index].pivot.quantity
+    );
   };
 
   const handleSubtract = (index) => {
@@ -98,7 +108,10 @@ const Cart = () => {
     if (newCartItems[index].pivot.quantity > 1) {
       newCartItems[index].pivot.quantity -= 1;
       setCartItems(newCartItems);
-      updateCart(newCartItems[index].id, newCartItems[index].pivot.quantity);
+      debouncedUpdateCart(
+        newCartItems[index].id,
+        newCartItems[index].pivot.quantity
+      );
     }
   };
 
@@ -128,12 +141,28 @@ const Cart = () => {
         }
         const newCartItems = cartItems.filter((_, i) => i !== deleteIndex);
         setCartItems(newCartItems);
-        calculateTotalPrice(newCartItems);
+        setSubtotal(newCartItems.reduce((sum, item) => sum + item.pivot.quantity * (item.discountpercentage ? item.price * ((100 - item.discountpercentage) / 100) : item.price), 0));
+        setTotal(subtotal + deliveryCharge);
       } else {
         toast.error("Error deleting item from cart");
       }
     }
     setDeleteDialogOpen(false);
+  };
+
+  const handleToProceedOrder = () => {
+    if (!user_detail) {
+      // Display dialog for incomplete profile
+      setIncompleteProfileDialogOpen(true);
+    } else {
+      navigate("/order");
+    }
+  };
+
+  const [incompleteProfileDialogOpen, setIncompleteProfileDialogOpen] = useState(false);
+
+  const handleIncompleteProfileDialogClose = () => {
+    setIncompleteProfileDialogOpen(false);
   };
 
   return (
@@ -148,9 +177,7 @@ const Cart = () => {
             textAlign: "center",
           }}
         >
-          <Typography  sx={{ mb: 2 }}>
-            There is no item in this cart
-          </Typography>
+          <Typography sx={{ mb: 2 }}>There is no item in this cart</Typography>
           <Button
             onClick={() => navigate("/")}
             sx={{
@@ -180,7 +207,7 @@ const Cart = () => {
               color: darkMode ? "#fff" : "#000",
               backgroundColor: darkMode ? "#333" : "#fff",
               border: "none", // Add this line
-              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)"
+              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
             }}
           >
             <Typography
@@ -203,7 +230,7 @@ const Cart = () => {
                 color: darkMode ? "#fff" : "#333",
                 marginLeft: "-101px",
                 border: "none", // Add this line
-                boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)"
+                boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
               }}
             >
               {cartItems.map((item, index) => (
@@ -232,7 +259,9 @@ const Cart = () => {
                       alt={item.title}
                     />
                     <Box sx={{ marginLeft: "50px", display: "flex" }}>
-                      <Typography sx={{ fontWeight: "bold", position: "absolute" }}>
+                      <Typography
+                        sx={{ fontWeight: "bold", position: "absolute" }}
+                      >
                         {item.title}
                       </Typography>
                       <Box
@@ -244,42 +273,29 @@ const Cart = () => {
                           alignItems: "flex-end",
                         }}
                       >
-                        {item.discountpercentage ? (
-                          <>
-                            <Typography
-                              sx={{
-                                marginRight: "20px",
-                                color: "CaptionText",
-                                fontSize: 15,
-                                textDecoration: "line-through",
-                              }}
-                            >
-                              Rs.{item.price * item.pivot.quantity}
-                            </Typography>
-                            <Typography
-                              sx={{
-                                color: "red",
-                                fontSize: 17,
-                              }}
-                            >
-                              Rs.
-                              {(
-                                item.price *
-                                ((100 - item.discountpercentage) / 100) *
-                                item.pivot.quantity
-                              ).toFixed(2)}
-                            </Typography>
-                          </>
-                        ) : (
-                          <Typography
-                            sx={{
-                              color: "CaptionText",
-                              fontSize: 17,
-                            }}
-                          >
-                            Rs.{item.price * item.pivot.quantity}
-                          </Typography>
-                        )}
+                                                <Typography
+                          sx={{
+                            marginRight: "20px",
+                            color: "CaptionText",
+                            fontSize: 15,
+                            textDecoration: "line-through",
+                          }}
+                        >
+                          Rs.{item.price * item.pivot.quantity}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            color: "red",
+                            fontSize: 17,
+                          }}
+                        >
+                          Rs.
+                          {(
+                            item.price *
+                            ((100 - item.discountpercentage) / 100) *
+                            item.pivot.quantity
+                          ).toFixed(2)}
+                        </Typography>
                       </Box>
                       <Box sx={{ marginLeft: "240px", marginTop: "40px" }}>
                         <CustomButton
@@ -311,7 +327,10 @@ const Cart = () => {
                         />
                       </Box>
                       <Box sx={{ marginLeft: "540px", position: "absolute" }}>
-                        <CustomButton type="add" onClick={() => handleAdd(index)} />
+                        <CustomButton
+                          type="add"
+                          onClick={() => handleAdd(index)}
+                        />
                       </Box>
                     </Box>
                     {index !== cartItems.length - 1 && <Divider />}
@@ -336,7 +355,7 @@ const Cart = () => {
               color: darkMode ? "#fff" : "#000",
               backgroundColor: darkMode ? "#333" : "#fff",
               border: "none", // Add this line
-              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)"
+              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
             }}
           >
             <Typography sx={{ marginTop: "10px" }} variant="h5">
@@ -356,7 +375,7 @@ const Cart = () => {
                 Subtotal ({`${cartItems.length} items`})
               </Typography>
               <Typography>
-                Rs. {calculateTotalPrice(cartItems).toFixed(2)}
+                Rs. {subtotal.toFixed(2)}
               </Typography>
             </Box>
             <Box
@@ -384,7 +403,7 @@ const Cart = () => {
             >
               <Typography>Total</Typography>
               <Typography sx={{ color: "#ff0000" }}>
-                Rs. {(calculateTotalPrice(cartItems) + deliveryCharge).toFixed(2)}
+                Rs. {total.toFixed(2)}
               </Typography>
             </Box>
             <Box
@@ -394,7 +413,7 @@ const Cart = () => {
               }}
             >
               <Button
-                onClick={() => navigate("/order")}
+                onClick={handleToProceedOrder}
                 type="submit"
                 variant="contained"
                 sx={{
@@ -413,7 +432,10 @@ const Cart = () => {
         </>
       )}
 
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
         <DialogTitle>Remove From Cart</DialogTitle>
         <DialogContent>
           <Typography>Item(s) will be removed from order.</Typography>
@@ -430,8 +452,25 @@ const Cart = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog
+        open={incompleteProfileDialogOpen}
+        onClose={handleIncompleteProfileDialogClose}
+      >
+        <DialogTitle>Cannot place order</DialogTitle>
+        <DialogContent>
+          <Typography>You need to fill up your information for placing order.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => navigate('/profile')} color="primary">
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
 
 export default Cart;
+
+                         

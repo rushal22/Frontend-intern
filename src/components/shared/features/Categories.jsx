@@ -96,11 +96,7 @@ const Categories = () => {
                 button
                 key={category.id}
                 onMouseEnter={(event) => handleCategoryHover(category, event)}
-                onClick={() =>
-                  !category.children || category.children.length === 0
-                    ? handleCategoryClick(category.id)
-                    : null
-                }
+                onClick={() => handleCategoryClick(category.id)}
                 sx={{
                   "&:hover": {
                     backgroundColor: darkMode ? "#444" : "#f5f5f5", // Hover background color based on darkMode

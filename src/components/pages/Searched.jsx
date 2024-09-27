@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Container, Typography, styled, Box } from "@mui/material";
+import { Container, Typography, Chip } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import baseApi from "../../apibase-endpoint/apiBase";
 import { productEnd } from "../../apibase-endpoint/apiEndpoint";
@@ -10,7 +10,8 @@ const SearchPage = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const query = params.get("q");
-  const [products, setProducts] = useState(null); // Initialize with null to differentiate between no results and loading state
+  
+  const [products, setProducts] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -21,7 +22,7 @@ const SearchPage = () => {
 
   const fetchProducts = () => {
     setLoading(true);
-    setProducts(null); // Clear previous results
+    setProducts(null);
     baseApi({ apiDetails: productEnd.searchProduct, query: { keyword: query } })
       .then((res) => {
         setLoading(false);
@@ -29,24 +30,32 @@ const SearchPage = () => {
           const resData = res.data;
           setProducts(resData.products);
         } else if (res.status === 404) {
-          toast.error(res.data.message);
-          setProducts([]); // Set empty array to indicate no results
-        } else {
-          toast.error(`Something went wrong`);
-        }
+          setProducts([]);
+        } 
       })
       .catch((error) => {
         setLoading(false);
         console.log("Error:", error);
-        toast.error(`Something went wrong`);
       });
   };
 
   return (
     <Container sx={{ maxWidth: "100%" }}>
-      {query && (
-        <Typography sx={{ marginTop: "80px" }} variant="h4">
-          Search Results For: {query}
+      {products && (
+        <Typography sx={{ marginTop: "100px", fontSize: 18 }}>
+          {products.length > 0 ? (
+            <>
+              {products.length} items found for:{" "}
+              <Chip
+                label={query}
+                variant="outlined"
+                color="primary"
+                sx={{ marginLeft: 1 }}
+              />
+            </>
+          ) : (
+            `No results found for "${query}"`
+          )}
         </Typography>
       )}
       {loading && <Typography>Loading...</Typography>}

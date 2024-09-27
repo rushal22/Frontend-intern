@@ -103,6 +103,10 @@ export const orderEnd = {
         "url" : '/order',
         "method": 'POST'
     },
+    'singleOrder' : {
+        "url" : '/order/:id',
+        "method" : 'GET'
+    },
     'viewOrder' : {
         "url" : '/orders',
         "method" : "GET"

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Drawer,
@@ -16,9 +16,7 @@ import {
   ShoppingCart as ShoppingCartIcon,
   Assignment as AssignmentIcon,
   Settings as SettingsIcon,
-  LogoutIcon,
 } from '@mui/icons-material';
-import { logOutUser } from '../../reactredux/actions';
 import '../../assets/css/main.css';
 import AdminAppBar from './AdminNavbar';
 import baseApi from '../../apibase-endpoint/apiBase';
@@ -90,7 +88,7 @@ const AdminDashboard = () => {
           <ListItem
             button
             component={Link}
-            to="/admin/home"
+            to="/admin"
             selected={selectedItem === 'Home'}
             onClick={() => handleListItemClick('Home')}
             sx={{

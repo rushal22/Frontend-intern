@@ -20,22 +20,51 @@ import toast from 'react-hot-toast';
 
 const TrackOrder = () => {
   const [orderData, setOrderData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await baseApi({ apiDetails: orderEnd.viewOrder });
-      console.log(response);
-      if (response.status === 200) {
-        setOrderData(response.data.orders[0]); // Assuming you want the first order in the array
+      try {
+        const response = await baseApi({ apiDetails: orderEnd.viewOrder });
+        console.log(response); // Check response structure and data
+
+        if (response.status === 200 && response.data.orders.length > 0) {
+          // Find the order with the latest date
+          let latestOrder = response.data.orders[0];
+
+          response.data.orders.forEach(order => {
+            if (new Date(order.created_at) > new Date(latestOrder.created_at)) {
+              latestOrder = order;
+            }
+          });
+
+          setOrderData(latestOrder);
+        } else {
+          toast.error('Failed to fetch order details');
+        }
+      } catch (error) {
+        console.error('Error fetching order:', error);
+        toast.error('Failed to fetch order details');
+      } finally {
+        setLoading(false); // Set loading to false after fetching
       }
     };
-    fetchData();
-  }, []);
+
+    fetchData(); // Fetch data on every render
+  }, []); // Empty dependency array to fetch data once on mount
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (!orderData) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
+        <Typography variant="h5">No order found</Typography>
       </Box>
     );
   }
@@ -44,13 +73,18 @@ const TrackOrder = () => {
 
   const handleCancelOrder = async () => {
     const cancelOrderUrl = orderEnd.cancelOrder.url.replace(':id', id);
-    const response = await baseApi({ apiDetails: { ...orderEnd.cancelOrder, url: cancelOrderUrl } });
-    console.log(response);
-    if (response.status === 200) {
-      toast.success(response.data.message);
-      window.location.reload()
-    } else {
-      toast.error(response.data.message);
+    try {
+      const response = await baseApi({ apiDetails: { ...orderEnd.cancelOrder, url: cancelOrderUrl } });
+      console.log(response);
+      if (response.status === 200) {
+        toast.success(response.data.message);
+        window.location.reload(); // Reload the page after successful cancellation
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      toast.error('Failed to cancel order');
     }
   };
 

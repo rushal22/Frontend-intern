@@ -5,14 +5,18 @@ import { cartEnd, orderEnd } from "../../apibase-endpoint/apiEndpoint";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { config } from "../../helper/config";
+import { useNavigate } from "react-router-dom";
+
 const Order = () => {
+  const navigate = useNavigate()
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
   );
   const { firstName, lastName, user_detail, email } = useSelector(
     (state) => state.UserDetails
   );
-
+  const [subtotal , setSubtotal] = useState()
+  const [totalPrice , setTotal] = useState()
   const [cartItems, setCartItems] = useState([]);
   const [deliveryDetails, setDeliveryDetails] = useState({
     firstName: firstName || "",
@@ -22,20 +26,22 @@ const Order = () => {
     contact: user_detail.contact || "",
   });
 
-  const [deliveryCharge, setDeliveryCharge] = useState(); // Example delivery charge
+  const [deliveryCharge, setDeliveryCharge] = useState(); 
 
   useEffect(() => {
-    fetchCartData(); // Initial fetch when component mounts
+    fetchCartData(); 
   }, []);
   console.log(cartItems);
 
   const fetchCartData = async () => {
     try {
-      const res = await baseApi({ apiDetails: cartEnd.viewCart }); // Replace with your actual cartView API endpoint
+      const res = await baseApi({ apiDetails: cartEnd.viewCart }); 
+      console.log(res);
       if (res.status === 200) {
+        setSubtotal(res.data.subtotal)
         setCartItems(res.data.cart.products);
         setDeliveryCharge(res.data.deliverycharge);
-        calculateTotalPrice(res.data.cart.products);
+        setTotal(res.data.total)
       }
     } catch (error) {
       console.error("Error fetching cart items:", error);
@@ -64,13 +70,6 @@ const Order = () => {
     }
   };
 
-  const calculateTotalPrice = (items) => {
-    return items.reduce(
-      (total, item) => total + item.price * item.pivot.quantity,
-      0
-    );
-  };
-
   return (
     <Container style={{ marginTop: "30px" }}>
       <Grid container spacing={3}>
@@ -88,6 +87,7 @@ const Order = () => {
               flexDirection: "column",
               justifyContent: "flex-start",
               alignItems: "flex-start",
+              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)"
             }}
           >
             <Typography sx={{ fontWeight: "bold",fontSize: 15, marginBottom: "15px" }}>
@@ -115,6 +115,7 @@ const Order = () => {
               flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
+              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)"
             }}
           >
             <Typography
@@ -143,12 +144,13 @@ const Order = () => {
                   >
                     <Typography variant="body1">{item.title}</Typography>
                     <img
+                      onClick={() => navigate(`/productdetail/${item.id}`)}
                       src={config.baseUrl + item.image}
-                      style={{ height: "40px", marginLeft: "10px" }}
+                      style={{ height: "50px", marginLeft: "10px", cursor: "pointer" }}
                     />
                   </Box>
-                  <Typography variant="body2">
-                    Quantity: {item.pivot.quantity}
+                  <Typography variant="body2" >
+                    Quantity: 1 x {item.pivot.quantity}
                   </Typography>
                   <Typography variant="body2">
                     Price: Rs. {(item.price * item.pivot.quantity).toFixed(2)}
@@ -163,10 +165,10 @@ const Order = () => {
                   marginTop: "20px",
                 }}
               >
-                <Typography>Total Items ({cartItems.length} items)</Typography>
+                <Typography>Subtotal Items ({cartItems.length} items)</Typography>
                 <Typography>
-                  Rs. {calculateTotalPrice(cartItems).toFixed(2)}
-                </Typography>
+                  Rs.{subtotal}
+                 </Typography>
               </Box>
               <Box
                 sx={{
@@ -191,9 +193,8 @@ const Order = () => {
               >
                 <Typography sx={{ fontWeight: "bold" }}>Total</Typography>
                 <Typography sx={{ fontWeight: "bold", color: "#f00" }}>
-                  Rs.{" "}
-                  {(calculateTotalPrice(cartItems) + deliveryCharge).toFixed(2)}
-                </Typography>
+                  Rs.{totalPrice}
+                  </Typography>
               </Box>
             </Box>
             <Button

@@ -153,7 +153,7 @@ const CardComponent = ({ data }) => {
             </Grid>
           ))
         ) : (
-          <Typography variant="h5">No data found</Typography>
+          <Typography sx={{fontSize: 20}}>Some reasons there is no products...</Typography>
         )}
       </Grid>
     </Container>
